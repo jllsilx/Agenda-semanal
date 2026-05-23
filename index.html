@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda Semanal Pessoal</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #2563eb;
+      --primary-soft: #dbeafe;
+      --border: #e5e7eb;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+      --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    body.dark {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --primary: #60a5fa;
+      --primary-soft: #1e3a8a;
+      --border: #374151;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .app {
+      max-width: 1300px;
+      margin: auto;
+    }
+
+    header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .title h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      margin-bottom: 6px;
+    }
+
+    .title p {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .clock-card {
+      background: var(--primary-soft);
+      color: var(--text);
+      padding: 14px 18px;
+      border-radius: 18px;
+      min-width: 230px;
+      text-align: center;
+    }
+
+    .clock-card strong {
+      display: block;
+      font-size: 1.6rem;
+      margin-top: 4px;
+    }
+
+    .top-actions, .filters, .settings {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button, select, input, textarea {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: var(--card);
+      color: var(--text);
+      outline: none;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.9;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+      border-color: var(--danger);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+
+    .toolbar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card span {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 2rem;
+      margin-top: 8px;
+    }
+
+    .week-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+    }
+
+    .day-tab {
+      white-space: nowrap;
+      border-radius: 999px;
+      padding: 10px 16px;
+    }
+
+    .day-tab.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .schedule {
+      display: grid;
+      gap: 12px;
+    }
+
+    .time-row {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .hour {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+      padding-top: 10px;
+    }
+
+    .task-card {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    textarea {
+      min-height: 42px;
+      resize: vertical;
+    }
+
+    .task-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: var(--primary-soft);
+      color: var(--text);
+    }
+
+    .done {
+      border-left: 6px solid var(--success);
+    }
+
+    .late {
+      border-left: 6px solid var(--warning);
+    }
+
+    .missed {
+      border-left: 6px solid var(--danger);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 20px;
+    }
+
+    .modal {
+      background: var(--card);
+      color: var(--text);
+      border-radius: 22px;
+      padding: 22px;
+      width: min(520px, 100%);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .modal h2 {
+      margin-bottom: 10px;
+    }
+
+    .modal p {
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .modal-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .reason-box {
+      display: none;
+      margin-top: 12px;
+      gap: 10px;
+    }
+
+    .empty {
+      color: var(--muted);
+      text-align: center;
+      padding: 20px;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 12px;
+      }
+
+      .time-row {
+        grid-template-columns: 1fr;
+      }
+
+      .hour {
+        padding-top: 0;
+      }
+
+      header {
+        align-items: stretch;
+      }
+
+      .clock-card {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>Agenda Semanal Pessoal</h1>
+        <p>Organize estudos, faculdade, trabalho, treino e compromissos com lembretes por horário.</p>
+      </div>
+      <div class="clock-card">
+        Horário de Brasília
+        <strong id="clock">--:--:--</strong>
+        <small id="todayLabel"></small>
+      </div>
+    </header>
+
+    <section class="toolbar">
+      <div class="settings">
+        <label>Início</label>
+        <select id="startHour"></select>
+        <label>Fim</label>
+        <select id="endHour"></select>
+        <button class="btn-primary" onclick="applyHours()">Aplicar horários</button>
+      </div>
+
+      <div class="filters">
+        <select id="filterCategory" onchange="renderSchedule()">
+          <option value="todos">Todas as categorias</option>
+          <option value="Estudo">Estudo</option>
+          <option value="Faculdade">Faculdade</option>
+          <option value="Trabalho">Trabalho</option>
+          <option value="Treino">Treino</option>
+          <option value="Descanso">Descanso</option>
+          <option value="Pessoal">Pessoal</option>
+        </select>
+
+        <select id="filterStatus" onchange="renderSchedule()">
+          <option value="todos">Todos os status</option>
+          <option value="pendente">Pendente</option>
+          <option value="andamento">Em andamento</option>
+          <option value="concluida">Concluída</option>
+          <option value="nao-realizada">Não realizada</option>
+          <option value="atrasada">Concluída com atraso</option>
+        </select>
+      </div>
+
+      <div class="top-actions">
+        <button onclick="toggleTheme()">Alternar claro/escuro</button>
+        <button class="btn-danger" onclick="clearWeek()">Limpar semana</button>
+      </div>
+    </section>
+
+    <section class="dashboard">
+      <div class="stat-card">
+        <span>Tarefas do dia</span>
+        <strong id="totalToday">0</strong>
+      </div>
+      <div class="stat-card">
+        <span>Concluídas</span>
+        <strong id="doneToday">0</strong>
+      </div>
+      <div class="stat-card">
+        <span>Percentual concluído</span>
+        <strong id="percentToday">0%</strong>
+      </div>
+      <div class="stat-card">
+        <span>Atrasadas / não marcadas</span>
+        <strong id="lateToday">0</strong>
+      </div>
+    </section>
+
+    <nav class="week-tabs" id="weekTabs"></nav>
+    <main class="schedule" id="schedule"></main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <h2>Você realizou essa tarefa?</h2>
+      <p id="modalTaskText"></p>
+      <div class="modal-actions">
+        <button class="btn-success" onclick="answerTask('concluida')">Sim, realizei</button>
+        <button class="btn-primary" onclick="answerTask('atrasada')">Realizei, mas esqueci de marcar</button>
+        <button class="btn-danger" onclick="showReasonBox()">Não realizei</button>
+      </div>
+      <div class="reason-box" id="reasonBox">
+        <textarea id="reasonInput" placeholder="Explique o motivo de não ter realizado..."></textarea>
+        <button class="btn-danger" onclick="answerTask('nao-realizada')">Salvar motivo</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const days = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+    const categories = ['Estudo', 'Faculdade', 'Trabalho', 'Treino', 'Descanso', 'Pessoal'];
+    const priorities = ['Baixa', 'Média', 'Alta'];
+    const statuses = [
+      { value: 'pendente', label: 'Pendente' },
+      { value: 'andamento', label: 'Em andamento' },
+      { value: 'concluida', label: 'Concluída' },
+      { value: 'nao-realizada', label: 'Não realizada' },
+      { value: 'atrasada', label: 'Concluída com atraso' }
+    ];
+
+    let selectedDay = getBrasiliaDayName();
+    if (!days.includes(selectedDay)) selectedDay = 'Segunda';
+
+    let activePromptTask = null;
+    let settings = JSON.parse(localStorage.getItem('agendaSettings')) || { start: 5, end: 23, theme: 'light' };
+    let tasks = JSON.parse(localStorage.getItem('weeklyTasks')) || {};
+    let prompted = JSON.parse(localStorage.getItem('promptedTasks')) || {};
+
+    document.body.classList.toggle('dark', settings.theme === 'dark');
+
+    function saveAll() {
+      localStorage.setItem('weeklyTasks', JSON.stringify(tasks));
+      localStorage.setItem('agendaSettings', JSON.stringify(settings));
+      localStorage.setItem('promptedTasks', JSON.stringify(prompted));
+    }
+
+    function getBrasiliaNow() {
+      return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+    }
+
+    function getBrasiliaDayName() {
+      const dayIndex = getBrasiliaNow().getDay();
+      const map = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+      return map[dayIndex];
+    }
+
+    function formatHour(hour) {
+      return String(hour).padStart(2, '0') + ':00';
+    }
+
+    function taskKey(day, hour) {
+      return `${day}-${hour}`;
+    }
+
+    function getTask(day, hour) {
+      const key = taskKey(day, hour);
+      if (!tasks[key]) {
+        tasks[key] = {
+          day,
+          hour,
+          main: '',
+          note: '',
+          category: 'Estudo',
+          priority: 'Média',
+          status: 'pendente',
+          reason: '',
+          completedAt: ''
+        };
+      }
+      return tasks[key];
+    }
+
+    function initHourSelects() {
+      const start = document.getElementById('startHour');
+      const end = document.getElementById('endHour');
+      start.innerHTML = '';
+      end.innerHTML = '';
+
+      for (let h = 0; h <= 23; h++) {
+        start.innerHTML += `<option value="${h}">${formatHour(h)}</option>`;
+        end.innerHTML += `<option value="${h}">${formatHour(h)}</option>`;
+      }
+
+      start.value = settings.start;
+      end.value = settings.end;
+    }
+
+    function applyHours() {
+      const start = Number(document.getElementById('startHour').value);
+      const end = Number(document.getElementById('endHour').value);
+
+      if (start >= end) {
+        alert('O horário inicial precisa ser menor que o horário final.');
+        return;
+      }
+
+      settings.start = start;
+      settings.end = end;
+      saveAll();
+      renderSchedule();
+    }
+
+    function toggleTheme() {
+      settings.theme = settings.theme === 'dark' ? 'light' : 'dark';
+      document.body.classList.toggle('dark', settings.theme === 'dark');
+      saveAll();
+    }
+
+    function clearWeek() {
+      if (confirm('Tem certeza que deseja apagar todas as tarefas da semana?')) {
+        tasks = {};
+        prompted = {};
+        saveAll();
+        renderSchedule();
+        updateDashboard();
+      }
+    }
+
+    function renderTabs() {
+      const container = document.getElementById('weekTabs');
+      container.innerHTML = days.map(day => `
+        <button class="day-tab ${day === selectedDay ? 'active' : ''}" onclick="selectDay('${day}')">${day}</button>
+      `).join('');
+    }
+
+    function selectDay(day) {
+      selectedDay = day;
+      renderTabs();
+      renderSchedule();
+      updateDashboard();
+    }
+
+    function renderSchedule() {
+      const schedule = document.getElementById('schedule');
+      const filterCategory = document.getElementById('filterCategory').value;
+      const filterStatus = document.getElementById('filterStatus').value;
+      let html = '';
+
+      for (let h = settings.start; h <= settings.end; h++) {
+        const task = getTask(selectedDay, h);
+        const isEmpty = !task.main && !task.note;
+        const categoryMatch = filterCategory === 'todos' || task.category === filterCategory;
+        const statusMatch = filterStatus === 'todos' || task.status === filterStatus;
+
+        if (!isEmpty && (!categoryMatch || !statusMatch)) continue;
+        if (isEmpty && (filterCategory !== 'todos' || filterStatus !== 'todos')) continue;
+
+        const rowClass = task.status === 'concluida' ? 'done' : task.status === 'atrasada' ? 'late' : task.status === 'nao-realizada' ? 'missed' : '';
+
+        html += `
+          <section class="time-row ${rowClass}">
+            <div class="hour">${formatHour(h)}</div>
+            <div class="task-card">
+              <div class="task-grid">
+                <input value="${escapeHtml(task.main)}" placeholder="Atividade principal" onchange="updateTask('${selectedDay}', ${h}, 'main', this.value)">
+                <textarea placeholder="Atividade secundária ou observação" onchange="updateTask('${selectedDay}', ${h}, 'note', this.value)">${escapeHtml(task.note)}</textarea>
+                <select onchange="updateTask('${selectedDay}', ${h}, 'category', this.value)">
+                  ${categories.map(cat => `<option ${task.category === cat ? 'selected' : ''}>${cat}</option>`).join('')}
+                </select>
+                <select onchange="updateTask('${selectedDay}', ${h}, 'priority', this.value)">
+                  ${priorities.map(priority => `<option ${task.priority === priority ? 'selected' : ''}>${priority}</option>`).join('')}
+                </select>
+                <select onchange="updateTask('${selectedDay}', ${h}, 'status', this.value)">
+                  ${statuses.map(status => `<option value="${status.value}" ${task.status === status.value ? 'selected' : ''}>${status.label}</option>`).join('')}
+                </select>
+              </div>
+
+              <div class="task-footer">
+                <div>
+                  <span class="badge">${task.category}</span>
+                  <span class="badge">Prioridade: ${task.priority}</span>
+                  <span class="badge">Status: ${statusLabel(task.status)}</span>
+                  ${task.reason ? `<span class="badge">Motivo: ${escapeHtml(task.reason)}</span>` : ''}
+                </div>
+                <div>
+                  <button class="btn-success" onclick="markDone('${selectedDay}', ${h})">Marcar feita</button>
+                  <button onclick="clearTask('${selectedDay}', ${h})">Limpar</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        `;
+      }
+
+      schedule.innerHTML = html || '<div class="empty">Nenhuma tarefa encontrada com os filtros selecionados.</div>';
+      updateDashboard();
+      saveAll();
+    }
+
+    function escapeHtml(text) {
+      return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function statusLabel(value) {
+      const found = statuses.find(s => s.value === value);
+      return found ? found.label : value;
+    }
+
+    function updateTask(day, hour, field, value) {
+      const task = getTask(day, hour);
+      task[field] = value;
+
+      if (field === 'status' && ['concluida', 'atrasada'].includes(value)) {
+        task.completedAt = getBrasiliaNow().toLocaleString('pt-BR');
+        task.reason = '';
+      }
+
+      saveAll();
+      renderSchedule();
+    }
+
+    function markDone(day, hour) {
+      const task = getTask(day, hour);
+      task.status = 'concluida';
+      task.completedAt = getBrasiliaNow().toLocaleString('pt-BR');
+      task.reason = '';
+      saveAll();
+      renderSchedule();
+    }
+
+    function clearTask(day, hour) {
+      const key = taskKey(day, hour);
+      delete tasks[key];
+      delete prompted[key];
+      saveAll();
+      renderSchedule();
+    }
+
+    function updateDashboard() {
+      let total = 0;
+      let done = 0;
+      let late = 0;
+
+      for (let h = settings.start; h <= settings.end; h++) {
+        const task = getTask(selectedDay, h);
+        if (task.main || task.note) {
+          total++;
+          if (task.status === 'concluida' || task.status === 'atrasada') done++;
+          if (task.status === 'pendente' || task.status === 'andamento' || task.status === 'nao-realizada') {
+            const now = getBrasiliaNow();
+            const currentDay = getBrasiliaDayName();
+            if (selectedDay === currentDay && now.getHours() > h) late++;
+            if (task.status === 'nao-realizada') late++;
+          }
+        }
+      }
+
+      document.getElementById('totalToday').textContent = total;
+      document.getElementById('doneToday').textContent = done;
+      document.getElementById('percentToday').textContent = total ? Math.round((done / total) * 100) + '%' : '0%';
+      document.getElementById('lateToday').textContent = late;
+    }
+
+    function updateClock() {
+      const now = getBrasiliaNow();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR');
+      document.getElementById('todayLabel').textContent = getBrasiliaDayName();
+      checkMissedTasks();
+      updateDashboard();
+    }
+
+    function checkMissedTasks() {
+      const now = getBrasiliaNow();
+      const currentDay = getBrasiliaDayName();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+
+      for (let h = settings.start; h <= settings.end; h++) {
+        const key = taskKey(currentDay, h);
+        const task = getTask(currentDay, h);
+        const hasContent = task.main || task.note;
+        const isPast = currentHour > h || (currentHour === h && currentMinute >= 1);
+        const needsPrompt = hasContent && isPast && ['pendente', 'andamento'].includes(task.status) && !prompted[key];
+
+        if (needsPrompt && !activePromptTask) {
+          activePromptTask = { day: currentDay, hour: h, key };
+          prompted[key] = true;
+          saveAll();
+          openModal(task);
+          break;
+        }
+      }
+    }
+
+    function openModal(task) {
+      document.getElementById('modalTaskText').textContent = `${formatHour(task.hour)} — ${task.main || 'Tarefa sem título'} ${task.note ? '| ' + task.note : ''}`;
+      document.getElementById('reasonBox').style.display = 'none';
+      document.getElementById('reasonInput').value = '';
+      document.getElementById('modalBackdrop').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modalBackdrop').style.display = 'none';
+      activePromptTask = null;
+      renderSchedule();
+    }
+
+    function showReasonBox() {
+      document.getElementById('reasonBox').style.display = 'grid';
+    }
+
+    function answerTask(status) {
+      if (!activePromptTask) return;
+      const task = getTask(activePromptTask.day, activePromptTask.hour);
+      task.status = status;
+
+      if (status === 'nao-realizada') {
+        const reason = document.getElementById('reasonInput').value.trim();
+        if (!reason) {
+          alert('Informe o motivo de não ter realizado a tarefa.');
+          return;
+        }
+        task.reason = reason;
+      } else {
+        task.reason = '';
+        task.completedAt = getBrasiliaNow().toLocaleString('pt-BR');
+      }
+
+      saveAll();
+      closeModal();
+    }
+
+    function boot() {
+      initHourSelects();
+      renderTabs();
+      renderSchedule();
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    boot();
+  </script>
+</body>
+</html>
